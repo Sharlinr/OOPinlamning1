@@ -9,52 +9,52 @@ import java.util.List;
 
 public class Repan {
 
-
-    public LocalDate datum = LocalDate.now().minusYears(1);
-    public LocalDate medlemsDatum;
+    public LocalDate datumMinusEttAr = LocalDate.now().minusYears(1);
+    public LocalDate medlemsBetalDatum;
     public LocalDate inpasseringTidpunkt = LocalDate.now();
 
-    public void giltigaMedelemmar(String namnPers) {
+    public void giltigaMedlemmar(String medlem) {
 
         try (BufferedReader reader = Files.newBufferedReader(Path.of(
                 "C:\\Users\\sharl\\OneDrive\\Skrivbord\\customers.txt"));
              BufferedWriter writer = new BufferedWriter(new FileWriter(
                      "GiltigaMedlemmar.txt", true))) {
-            {
-                String personUppgifter;
-                boolean aktivKund = false;
-                boolean inaktivKund = false;
 
-                while ((personUppgifter = reader.readLine()) != null) {
-                    List<String> personNamn = List.of(personUppgifter.split(","));
+            String personUppgifter;
+            boolean aktivKund = false;
+            boolean inaktivKund = false;
 
-                    if (personNamn.size() == 2) {
-                        if (personNamn.get(0).equals(namnPers)
-                                || personNamn.get(1).strip().equalsIgnoreCase(namnPers)) {
-                            medlemsDatum = LocalDate.parse(reader.readLine());
-                            if (datum.isBefore(medlemsDatum)) {
-                                System.out.println("Medlem, aktiv");
-                                aktivKund = true;
-                                inpasseringar(personNamn, inpasseringTidpunkt);
-                            } else if (datum.isAfter(medlemsDatum)) {
-                                System.out.println("Medlem, inaktiv");
-                                inaktivKund = true;
-                            }
-                            if (!Files.exists(Path.of("GiltigaMedlemmar.txt"))) {
-                                Files.createFile(Path.of("GiltigaMedlemmar.txt"));
-                            }
-                            writer.write(personUppgifter + " " + medlemsDatum);
-                            writer.newLine();
+            while ((personUppgifter = reader.readLine()) != null) {
+                List<String> personNamn = List.of(personUppgifter.split(","));
+
+                if (personNamn.size() == 2) {
+                    if (personNamn.get(0).equals(medlem)
+                            || personNamn.get(1).strip().equalsIgnoreCase(medlem)) {
+                        medlemsBetalDatum = LocalDate.parse(reader.readLine());
+                        if (datumMinusEttAr.isBefore(medlemsBetalDatum)) {
+                            System.out.println("Medlem, aktiv");
+                            aktivKund = true;
+                            inpasseringar(personNamn, inpasseringTidpunkt);
+                        } else if (datumMinusEttAr.isAfter(medlemsBetalDatum)) {
+                            System.out.println("Medlem, inaktiv");
+                            inaktivKund = true;
+                        } else {
+                            System.out.println("Ej medlem");
                         }
+                        if (!Files.exists(Path.of("GiltigaMedlemmar.txt"))) {
+                            Files.createFile(Path.of("GiltigaMedlemmar.txt"));
+                        }
+                        writer.write(personUppgifter + " " + medlemsBetalDatum);
+                        writer.newLine();
                     }
                 }
-                if (aktivKund) {
-                    System.out.println("Aktiv kund");
-                } else if (inaktivKund) {
-                    System.out.println("Inaktiv kund");
-                } else {
-                    System.out.println("Ej medlem");
-                }
+            }
+            if (aktivKund) {
+                System.out.println("Registrerar passage");
+            } else if (inaktivKund) {
+                System.out.println("Inaktiv kund");
+            } else {
+                System.out.println("Ej medlem");
             }
 
         } catch (FileNotFoundException e) {
@@ -64,26 +64,24 @@ public class Repan {
         }
     }
 
-    private void inpasseringar(List<String> personNamn, LocalDate inpasseringTidpunkt) {
+    public void inpasseringar(List<String> personNamn, LocalDate inpasseringTidpunkt) {
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String localDate = formatter.format(inpasseringTidpunkt);
-        String namn = personNamn.get(0);
-        String personnummer = personNamn.get(1);
+        String personnummer = personNamn.get(0);
+        String namn = personNamn.get(1);
 
-        try {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("Inpasseringar.txt", true))) {
             if (!Files.exists(Path.of("Inpasseringar.txt"))) {
                 Files.createFile(Path.of("Inpasseringar.txt"));
             }
-            BufferedWriter writer = new BufferedWriter(new FileWriter("Inpasseringar.txt", true));
-            writer.write(namn + " " + personnummer + " " + "Besökte anläggningen senast" + " " + localDate);
+            writer.write(personnummer + " " + namn + " " + "Besökte anläggningen senast" + " " + localDate);
             writer.newLine();
             writer.flush();
-            System.out.println(namn + " " + personnummer + " " + "Besökte anläggningen senast" + " " + localDate);
+            System.out.println(personnummer + " " + namn + " " + "Besökte anläggningen senast" + " " + localDate);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
-
-
